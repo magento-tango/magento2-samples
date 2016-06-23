@@ -1,7 +1,7 @@
 {
     "name": "magento/module-sample-scss",
     "description": "Demonstrates integration with new scss processor",
-    "version": "1.0.0-beta",
+    "version": "100.1.0-rc3",
     "require": {
         "php": "~5.5.0|~5.6.0|~7.0.0",
         "leafo/scssphp": "0.0.12",

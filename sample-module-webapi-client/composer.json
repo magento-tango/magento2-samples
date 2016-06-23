@@ -2,14 +2,14 @@
   "name": "magento/sample-module-webapi-client",
   "description": "A module to demonstrate REST API functionality",
   "type": "magento2-module",
-  "version": "1.0.0",
+  "version": "100.1.0-rc3",
   "license": [
     "OSL-3.0",
     "AFL-3.0"
   ],
   "require": {
     "php": "~5.5.0|~5.6.0|~7.0.0",
-    "magento/module-catalog": "~100.0"
+    "magento/module-catalog": "*"
   },
   "autoload": {
     "files": [ "registration.php" ],

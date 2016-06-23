@@ -2,14 +2,14 @@
   "name": "magento/sample-module-servicecontract-new",
   "description": "A Magento 2 module that provides a new service contract",
   "type": "magento2-module",
-  "version": "1.0.0",
+  "version": "100.1.0-rc3",
   "license": [
     "OSL-3.0",
     "AFL-3.0"
   ],
   "require": {
     "php": "~5.5.0|~5.6.0|~7.0.0",
-    "magento/framework": "~100.0"
+    "magento/framework": "*"
   },
   "autoload": {
     "files": [ "registration.php" ],

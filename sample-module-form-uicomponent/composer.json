@@ -2,7 +2,7 @@
   "name": "magento/sample-module-form-uicomponent",
   "description": "A Magento 2 module that demonstrate Form UI Component with customized field",
   "type": "magento2-module",
-  "version": "1.0.0-beta",
+  "version": "100.1.0-rc3",
   "license": [
     "OSL-3.0",
     "AFL-3.0"

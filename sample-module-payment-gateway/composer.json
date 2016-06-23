@@ -1,16 +1,16 @@
 {
-    "name": "magento/module-sample-payment-gateway",
+    "name": "magento/sample-module-payment-gateway",
     "description": "Demonstrates integration with payment gateway",
     "require": {
         "php": "~5.5.0|~5.6.0|~7.0.0",
-        "magento/module-sales": "100.0.*",
-        "magento/module-checkout": "100.0.*",
-        "magento/module-payment": "100.0.*",
-        "magento/framework": "100.0.*",
-        "magento/magento-composer-installer": "100.0.*"
+        "magento/module-sales": "*",
+        "magento/module-checkout": "*",
+        "magento/module-payment": "*",
+        "magento/framework": "*",
+        "magento/magento-composer-installer": "*"
     },
     "type": "magento2-module",
-    "version": "100.0.3",
+    "version": "100.1.0-rc3",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
