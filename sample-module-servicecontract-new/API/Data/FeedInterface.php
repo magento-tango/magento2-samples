@@ -4,7 +4,7 @@
  * See COPYING.txt for license details.
  */
 
-namespace Magento\SampleServiceContractNew\API\Data;
+namespace Magento\SampleServiceContractNew\Api\Data;
 
 use Magento\Framework\Api\CustomAttributesDataInterface;
 

@@ -3,89 +3,96 @@
  * Copyright © 2016 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magento\SampleServiceContractClient\Test\Unit\Block;
 
+use Magento\Catalog\Api\Data\ProductTypeInterface;
+use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Api\ProductTypeListInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Api\SearchCriteriaInterface;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\View\Element\Template\Context;
+use Magento\SampleServiceContractClient\Block\ProductList;
 
+/**
+ * Class ProductListTest
+ */
 class ProductListTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Framework\App\RequestInterface
+     * @var RequestInterface|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $request;
+    private $requestMock;
+
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Framework\View\Element\Template\Context
+     * @var Context|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $context;
+    private $contextMock;
+
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Catalog\Api\ProductTypeListInterface
+     * @var ProductTypeListInterface|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $productTypeList;
+    private $productTypeListMock;
+
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Catalog\Api\ProductRepositoryInterface
+     * @var ProductRepositoryInterface|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $productRepository;
+    private $productRepositoryMock;
+
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Framework\Api\SearchCriteriaBuilder
+     * @var SearchCriteriaBuilder|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $searchCriteriaBuilder;
+    private $searchCriteriaBuilderMock;
+
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Framework\Api\FilterBuilder
-     */
-    private $filterBuilder;
-    /**
-     * @var \Magento\SampleServiceContractClient\Block\ProductList
+     * @var ProductList|\PHPUnit_Framework_MockObject_MockObject
      */
     private $block;
 
     protected function setUp()
     {
-        $objectManager = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
-        $this->context = $this->getMockBuilder('Magento\Framework\View\Element\Template\Context')
+        $this->contextMock = $this->getMockBuilder(Context::class)
             ->disableOriginalConstructor()
             ->setMethods(['getRequest'])
             ->getMock();
-        $this->request = $this->getMockBuilder('Magento\Framework\App\RequestInterface')
+        $this->requestMock = $this->getMockBuilder(RequestInterface::class)
             ->getMockForAbstractClass();
-        $this->context->expects($this->once())
+        $this->contextMock->expects($this->once())
             ->method('getRequest')
-            ->willReturn($this->request);
-        $this->productTypeList = $this->getMockBuilder('Magento\Catalog\Api\ProductTypeListInterface')
+            ->willReturn($this->requestMock);
+        $this->productTypeListMock = $this->getMockBuilder(ProductTypeListInterface::class)
             ->getMockForAbstractClass();
-        $this->productRepository = $this->getMockBuilder('Magento\Catalog\Api\ProductRepositoryInterface')
+        $this->productRepositoryMock = $this->getMockBuilder(ProductRepositoryInterface::class)
             ->getMockForAbstractClass();
-        $this->searchCriteriaBuilder = $this->getMockBuilder('Magento\Framework\Api\SearchCriteriaBuilder')
+        $this->searchCriteriaBuilderMock = $this->getMockBuilder(SearchCriteriaBuilder::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $this->filterBuilder = $this->getMockBuilder('Magento\Framework\Api\FilterBuilder')
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->block = $objectManager->getObject(
-            'Magento\SampleServiceContractClient\Block\ProductList',
+
+        $this->block = (new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this))->getObject(
+            ProductList::class,
             [
-                'context' => $this->context,
-                'productTypeList' => $this->productTypeList,
-                'productRepository' => $this->productRepository,
-                'searchCriteriaBuilder' => $this->searchCriteriaBuilder,
-                'filterBuilder' => $this->filterBuilder,
+                'context' => $this->contextMock,
+                'productTypeList' => $this->productTypeListMock,
+                'productRepository' => $this->productRepositoryMock,
+                'searchCriteriaBuilder' => $this->searchCriteriaBuilderMock,
             ]
         );
-
     }
 
     public function testGetProductTypes()
     {
         $productTypeOne = $this->createProductType('ProductType1Name', 'ProductType1Label');
         $productTypeTwo = $this->createProductType('ProductType2Name', 'ProductType2Label');
-        $this->productTypeList->expects($this->once())
+
+        $this->productTypeListMock->expects($this->once())
             ->method('getProductTypes')
             ->willReturn([$productTypeOne, $productTypeTwo]);
         $expectedResult = [
             $productTypeOne,
             $productTypeTwo
         ];
-        $result = $this->block->getProductTypes();
-        $this->assertEquals($expectedResult, $result);
+
+        $this->assertEquals($expectedResult, $this->block->getProductTypes());
     }
 
     /**
@@ -96,13 +103,17 @@ class ProductListTest extends \PHPUnit_Framework_TestCase
      */
     public function testIsTypeActive($requestedType, $productType, $expectedValue)
     {
-        $this->request->expects($this->exactly(1))
+        $this->requestMock->expects($this->exactly(1))
             ->method('getParam')
             ->with($this->equalTo('type'))
             ->willReturn($requestedType);
+
         $this->assertEquals($expectedValue, $this->block->isTypeActive($productType));
     }
 
+    /**
+     * @return array
+     */
     public function isTypeActiveDataProvider()
     {
         return [
@@ -116,75 +127,56 @@ class ProductListTest extends \PHPUnit_Framework_TestCase
                 'productType' => $this->createProductType('ExampleProductType', 'FilteredProductTypeLabel'),
                 'expectedValue' => false,
             ]
-
         ];
     }
 
     public function testGetProductsWithoutFilter()
     {
         $products = ['Product1', 'Product2'];
-        $searchCriteria = $this->getMockBuilder('Magento\Framework\Api\SearchCriteriaInterface')
+        $searchCriteria = $this->getMockBuilder(SearchCriteriaInterface::class)
             ->getMockForAbstractClass();
-        $this->searchCriteriaBuilder->expects($this->once())
-            ->method('addFilter')
-            ->with($this->equalTo([]))
-            ->willReturnSelf();
-        $this->searchCriteriaBuilder->expects($this->once())
+        $this->searchCriteriaBuilderMock->expects($this->once())
             ->method('create')
             ->willReturn($searchCriteria);
-        $this->productRepository->expects($this->once())
+        $this->productRepositoryMock->expects($this->once())
             ->method('getList')
             ->with($searchCriteria)
             ->willReturn($products);
 
-        $result = $this->block->getProducts();
-        $this->assertEquals($products, $result);
+        $this->assertEquals($products, $this->block->getProducts());
     }
 
     public function testGetProductsWithFilter()
     {
         $products = ['Product1', 'Product2'];
-        $searchCriteria = $this->getMockBuilder('Magento\Framework\Api\SearchCriteriaInterface')
+        $searchCriteria = $this->getMockBuilder(SearchCriteriaInterface::class)
             ->getMockForAbstractClass();
-        $this->request->expects($this->exactly(2))
+        $this->requestMock->expects($this->exactly(2))
             ->method('getParam')
             ->with($this->equalTo('type'))
             ->willReturn('FilterProductType');
-        $this->filterBuilder->expects($this->once())
-            ->method('setField')
-            ->with('type_id')
-            ->willReturnSelf();
-        $this->filterBuilder->expects($this->once())
-            ->method('setValue')
-            ->with($this->equalTo('FilterProductType'))
-            ->willReturnSelf();
-        $filter = $this->getMockBuilder('Magento\Framework\Api\Filter')
-            ->getMock();
-        $this->filterBuilder->expects($this->once())
-            ->method('create')
-            ->willReturn($filter);
-        $this->searchCriteriaBuilder->expects($this->once())
+        $this->searchCriteriaBuilderMock->expects($this->once())
             ->method('addFilter')
-            ->with($this->equalTo([$filter]))
             ->willReturnSelf();
-        $this->searchCriteriaBuilder->expects($this->once())
+        $this->searchCriteriaBuilderMock->expects($this->once())
             ->method('create')
             ->willReturn($searchCriteria);
-        $this->productRepository->expects($this->once())
+        $this->productRepositoryMock->expects($this->once())
             ->method('getList')
             ->with($searchCriteria)
             ->willReturn($products);
 
-        $result = $this->block->getProducts();
-        $this->assertEquals($products, $result);
+        $this->assertEquals($products, $this->block->getProducts());
     }
 
     /**
+     * @param string $name
+     * @param string $label
      * @return \PHPUnit_Framework_MockObject_MockObject
      */
     protected function createProductType($name, $label)
     {
-        $productType = $this->getMockBuilder('Magento\Catalog\Api\Data\ProductTypeInterface')
+        $productType = $this->getMockBuilder(ProductTypeInterface::class)
             ->setMethods(['getName', 'getLabel'])
             ->getMockForAbstractClass();
         $productType->expects($this->any())
@@ -193,6 +185,7 @@ class ProductListTest extends \PHPUnit_Framework_TestCase
         $productType->expects($this->any())
             ->method('getLabel')
             ->willReturn($label);
+
         return $productType;
     }
 }

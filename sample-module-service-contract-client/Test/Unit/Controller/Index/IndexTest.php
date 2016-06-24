@@ -3,57 +3,68 @@
  * Copyright © 2016 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magento\SampleServiceContractClient\Test\Unit\Controller\Index;
 
+use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\View\Result\PageFactory;
+use Magento\SampleServiceContractClient\Controller\Index\Index;
 
+/**
+ * Class IndexTest
+ */
 class IndexTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Framework\App\Action\Context
+     * @var Context|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $context;
+    private $contextMock;
+
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Framework\App\RequestInterface
+     * @var RequestInterface|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $request;
+    private $requestMock;
+
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Framework\App\ResponseInterface
+     * @var ResponseInterface|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $response;
+    private $responseMock;
+
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Framework\View\Result\PageFactory
+     * @var PageFactory|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $resultPageFactory;
+    private $resultPageFactoryMock;
+
     /**
-     * @var \Magento\SampleServiceContractClient\Controller\Index\Index
+     * @var Index
      */
     private $controller;
 
     protected function setUp()
     {
-        $this->context = $this->getMockBuilder('Magento\Framework\App\Action\Context')
+        $this->contextMock = $this->getMockBuilder(Context::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $this->request = $this->getMockBuilder('Magento\Framework\App\RequestInterface')
+        $this->requestMock = $this->getMockBuilder(RequestInterface::class)
             ->getMockForAbstractClass();
-        $this->context->expects($this->once())
+        $this->contextMock->expects($this->once())
             ->method('getRequest')
-            ->willReturn($this->request);
-        $this->response = $this->getMockBuilder('Magento\Framework\App\ResponseInterface')
+            ->willReturn($this->requestMock);
+        $this->responseMock = $this->getMockBuilder(ResponseInterface::class)
             ->getMockForAbstractClass();
-        $this->context->expects($this->once())
+        $this->contextMock->expects($this->once())
             ->method('getResponse')
-            ->willReturn($this->response);
-        $this->resultPageFactory = $this->getMockBuilder('Magento\Framework\View\Result\PageFactory')
+            ->willReturn($this->responseMock);
+        $this->resultPageFactoryMock = $this->getMockBuilder(PageFactory::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $objectManager = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
-        $this->controller = $objectManager->getObject(
-            '\Magento\SampleServiceContractClient\Controller\Index\Index',
+
+        $this->controller = (new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this))->getObject(
+            Index::class,
             [
-                'context' => $this->context,
-                'resultPageFactory' => $this->resultPageFactory,
+                'context' => $this->contextMock,
+                'resultPageFactory' => $this->resultPageFactoryMock,
             ]
         );
     }
@@ -61,10 +72,11 @@ class IndexTest extends \PHPUnit_Framework_TestCase
     public function testExecute()
     {
         $page = 'SamplePageObjectHere';
-        $this->resultPageFactory->expects($this->once())
+        $this->resultPageFactoryMock->expects($this->once())
             ->method('create')
             ->willReturn($page);
         $result = $this->controller->execute();
+
         $this->assertEquals($page, $result);
     }
 }

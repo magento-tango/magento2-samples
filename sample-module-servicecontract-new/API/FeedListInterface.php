@@ -4,7 +4,7 @@
  * See COPYING.txt for license details.
  */
 
-namespace Magento\SampleServiceContractNew\API;
+namespace Magento\SampleServiceContractNew\Api;
 
 interface FeedListInterface
 {

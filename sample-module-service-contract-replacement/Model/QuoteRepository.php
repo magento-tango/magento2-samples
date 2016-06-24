@@ -10,6 +10,9 @@ use Magento\Quote\Model\Quote;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 
+/**
+ * Class QuoteRepository
+ */
 class QuoteRepository extends \Magento\Quote\Model\QuoteRepository implements CartRepositoryInterface
 {
     /**
@@ -23,9 +26,11 @@ class QuoteRepository extends \Magento\Quote\Model\QuoteRepository implements Ca
     public function get($cartId, array $sharedStoreIds = [])
     {
         $quote = parent::get($cartId, $sharedStoreIds);
+
         if (!$quote->getIsActive()) {
             throw NoSuchEntityException::singleField('cartId', $cartId);
         }
+
         return $quote;
     }
 }

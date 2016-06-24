@@ -6,10 +6,10 @@
 namespace Magento\SampleServiceContractClient\Block;
 
 use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Catalog\Api\Data\ProductSearchResultsInterface;
 use Magento\Catalog\Api\Data\ProductTypeInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Api\ProductTypeListInterface;
-use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
@@ -23,25 +23,22 @@ class ProductList extends Template
      * @var ProductTypeListInterface
      */
     private $productTypeList;
+
     /**
      * @var ProductRepositoryInterface
      */
     private $productRepository;
+
     /**
      * @var SearchCriteriaBuilder
      */
     private $searchCriteriaBuilder;
-    /**
-     * @var FilterBuilder
-     */
-    private $filterBuilder;
 
     /**
      * @param Context $context
      * @param ProductTypeListInterface $productTypeList
      * @param ProductRepositoryInterface $productRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param FilterBuilder $filterBuilder
      * @param array $data
      */
     public function __construct(
@@ -49,28 +46,26 @@ class ProductList extends Template
         ProductTypeListInterface $productTypeList,
         ProductRepositoryInterface $productRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        FilterBuilder $filterBuilder,
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->productTypeList = $productTypeList;
         $this->productRepository = $productRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->filterBuilder = $filterBuilder;
     }
 
     /**
-     * @return \Magento\Catalog\Api\Data\ProductSearchResultsInterface
+     * @return ProductSearchResultsInterface
      */
     public function getProducts()
     {
-        $filters = $this->buildFilters();
-        $searchCriteria = $this->buildSearchCriteria($filters);
-        return $this->productRepository->getList($searchCriteria);
+        return $this->productRepository->getList(
+            $this->buildSearchCriteria()
+        );
     }
 
     /**
-     * @return \Magento\Catalog\Api\Data\ProductTypeInterface[]
+     * @return ProductTypeInterface[]
      */
     public function getProductTypes()
     {
@@ -95,27 +90,14 @@ class ProductList extends Template
     }
 
     /**
-     * @return \Magento\Framework\Api\Filter[]
+     * @return \Magento\Framework\Api\SearchCriteria
      */
-    private function buildFilters()
+    private function buildSearchCriteria()
     {
-        $filters = [];
         if ($this->getType()) {
-            $typeFilter = $this->filterBuilder
-                ->setField(ProductInterface::TYPE_ID)
-                ->setValue($this->getType())
-                ->create();
-            $filters[] = $typeFilter;
+            return $this->searchCriteriaBuilder->addFilter(ProductInterface::TYPE_ID, $this->getType())->create();
         }
-        return $filters;
-    }
 
-    /**
-     * @param \Magento\Framework\Api\Filter[] $filters
-     * @return \Magento\Framework\Api\SearchCriteriaInterface
-     */
-    private function buildSearchCriteria(array $filters)
-    {
-        return $this->searchCriteriaBuilder->addFilter($filters)->create();
+        return $this->searchCriteriaBuilder->create();
     }
 }

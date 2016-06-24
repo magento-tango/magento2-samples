@@ -3,15 +3,24 @@
  * Copyright © 2016 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magento\SampleServiceContractNew\Test\Unit\Model;
 
-use Magento\SampleServiceContractNew\API\Data\FeedSearchResultInterfaceFactory;
+use Magento\Framework\Api\Filter;
+use Magento\Framework\Api\Search\FilterGroup;
+use Magento\Framework\Api\SearchCriteria;
+use Magento\SampleServiceContractNew\Api\Data\FeedInterface;
+use Magento\SampleServiceContractNew\Api\Data\FeedSearchResultInterface;
+use Magento\SampleServiceContractNew\Api\Data\FeedSearchResultInterfaceFactory;
+use Magento\SampleServiceContractNew\Model\FeedManager;
+use Magento\SampleServiceContractNew\Model\FeedRepository;
 
+/**
+ * Class FeedRepositoryTest
+ */
 class FeedRepositoryTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var  \Magento\SampleServiceContractNew\Model\FeedManager|\PHPUnit_Framework_MockObject_MockObject
+     * @var  FeedManager|\PHPUnit_Framework_MockObject_MockObject
      */
     private $feedManager;
     /**
@@ -19,23 +28,22 @@ class FeedRepositoryTest extends \PHPUnit_Framework_TestCase
      */
     private $searchResultFactory;
     /**
-     * @var  \Magento\SampleServiceContractNew\Model\FeedRepository
+     * @var FeedRepository
      */
     private $feedRepository;
 
     protected function setUp()
     {
-        $objectManager = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
-        $this->feedManager = $this->getMockBuilder('Magento\SampleServiceContractNew\Model\FeedManager')
+        $this->feedManager = $this->getMockBuilder(FeedManager::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $this->searchResultFactory = $this->getMockBuilder(
-            '\Magento\SampleServiceContractNew\API\Data\FeedSearchResultInterfaceFactory'
-        )
+        $this->searchResultFactory = $this->getMockBuilder(FeedSearchResultInterfaceFactory::class)
+            ->setMethods(['create'])
             ->disableOriginalConstructor()
             ->getMock();
-        $this->feedRepository = $objectManager->getObject(
-            'Magento\SampleServiceContractNew\Model\FeedRepository',
+
+        $this->feedRepository = (new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this))->getObject(
+            FeedRepository::class,
             [
                 'feedManager' => $this->feedManager,
                 'searchResultFactory' => $this->searchResultFactory
@@ -51,7 +59,7 @@ class FeedRepositoryTest extends \PHPUnit_Framework_TestCase
         $this->feedManager->expects($this->once())
             ->method('getFeeds')
             ->willReturn($feeds);
-        $searchResult = $this->getMockBuilder('\Magento\SampleServiceContractNew\API\Data\FeedSearchResultInterface')
+        $searchResult = $this->getMockBuilder(FeedSearchResultInterface::class)
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
         $searchResult->expects($this->once())
@@ -61,12 +69,14 @@ class FeedRepositoryTest extends \PHPUnit_Framework_TestCase
         $this->searchResultFactory->expects($this->once())
             ->method('create')
             ->willReturn($searchResult);
-        $searchCriteria = $this->getMockBuilder('\Magento\Framework\Api\SearchCriteria')
+        /** @var SearchCriteria $searchCriteria */
+        $searchCriteria = $this->getMockBuilder(SearchCriteria::class)
             ->disableOriginalConstructor()
             ->getMock();
         $searchCriteria->expects($this->once())
             ->method('getFilterGroups')
             ->willReturn($filterGroups);
+
         $this->assertEquals($searchResult, $this->feedRepository->getList($searchCriteria));
     }
 
@@ -126,12 +136,13 @@ class FeedRepositoryTest extends \PHPUnit_Framework_TestCase
     public function testGetById()
     {
         $id = 'feedIdentifier';
-        $feed = 'customFeed';
+
         $this->feedManager->expects($this->once())
             ->method('getFeed')
             ->with($id)
-            ->willReturn($feed);
-        $this->assertEquals($feed, $this->feedRepository->getById($id));
+            ->willReturn('customFeed');
+
+        $this->assertEquals('customFeed', $this->feedRepository->getById($id));
     }
 
     /**
@@ -141,17 +152,24 @@ class FeedRepositoryTest extends \PHPUnit_Framework_TestCase
     public function testGetByIdNotFoundException()
     {
         $id = 'feedIdentifier';
-        $feed = null;
+
         $this->feedManager->expects($this->once())
             ->method('getFeed')
             ->with($id)
-            ->willReturn($feed);
+            ->willReturn(null);
+
         $this->feedRepository->getById($id);
     }
 
+    /**
+     * @param string $field
+     * @param mixed $value
+     * @return Filter
+     */
     private function createFilter($field, $value)
     {
-        $filter = $this->getMockBuilder('\Magento\Framework\Api\Filter')
+        /** @var Filter $filter */
+        $filter = $this->getMockBuilder(Filter::class)
             ->disableOriginalConstructor()
             ->getMock();
         $filter->expects($this->any())
@@ -160,23 +178,37 @@ class FeedRepositoryTest extends \PHPUnit_Framework_TestCase
         $filter->expects($this->any())
             ->method('getValue')
             ->willReturn($value);
+
         return $filter;
     }
 
+    /**
+     * @param array $filters
+     * @return FilterGroup
+     */
     private function createFilterGroup(array $filters)
     {
-        $filterGroup = $this->getMockBuilder('\Magento\Framework\Api\Search\FilterGroup')
+        /** @var FilterGroup $filterGroup */
+        $filterGroup = $this->getMockBuilder(FilterGroup::class)
             ->disableOriginalConstructor()
             ->getMock();
         $filterGroup->expects($this->atLeastOnce())
             ->method('getFilters')
             ->willReturn($filters);
+
         return $filterGroup;
     }
 
+    /**
+     * @param string $id
+     * @param string $title
+     * @param string $description
+     * @return FeedInterface
+     */
     private function createFeed($id = 'fieldId', $title = 'fieldTitle', $description = 'fieldDescription')
     {
-        $feed = $this->getMockBuilder('Magento\SampleServiceContractNew\API\Data\FeedInterface')
+        /** @var FeedInterface $feed */
+        $feed = $this->getMockBuilder(FeedInterface::class)
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
         $feed->expects($this->any())
@@ -188,6 +220,7 @@ class FeedRepositoryTest extends \PHPUnit_Framework_TestCase
         $feed->expects($this->any())
             ->method('getDescription')
             ->willReturn($description);
+
         return $feed;
     }
 }

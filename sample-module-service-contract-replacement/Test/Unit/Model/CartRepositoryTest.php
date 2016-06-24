@@ -4,72 +4,62 @@
  * Copyright © 2016 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magento\SampleServiceContractReplacement\Test\Unit\Model;
 
+use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Exception\InputException;
-use Magento\Framework\Exception\State\InvalidTransitionException;
 use Magento\SampleServiceContractReplacement\Model\CartRepository;
 use Magento\SampleServiceContractReplacement\Model\QuoteRepository;
 use Magento\GiftMessage\Api\Data\MessageInterface;
 use Magento\Quote\Api\Data\CartInterface;
 
+/**
+ * Class CartRepositoryTest
+ */
 class CartRepositoryTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var CartRepository
      */
-    protected $cartRepository;
+    private $cartRepository;
 
     /**
      * @var QuoteRepository|\PHPUnit_Framework_MockObject_MockObject
      */
-    protected $quoteRepositoryMock;
+    private $quoteRepositoryMock;
 
     /**
      * @var CartInterface|\PHPUnit_Framework_MockObject_MockObject
      */
-    protected $quoteMock;
+    private $quoteMock;
 
     /**
      * @var CacheInterface|\PHPUnit_Framework_MockObject_MockObject
      */
-    protected $cacheMock;
+    private $cacheMock;
 
     /**
      * @var MessageInterface|\PHPUnit_Framework_MockObject_MockObject
      */
-    protected $messageMock;
-
-    /**
-     * @var int
-     */
-    protected $cartId = 1;
+    private $messageMock;
 
     protected function setUp()
     {
-        $this->quoteMock = $this->getMock(
-            'Magento\Quote\Api\Data\CartInterface',
-            [],
-            [],
-            '',
-            false
+        $this->quoteMock = $this->getMockForAbstractClass(CartInterface::class);
+        $this->quoteRepositoryMock = $this->getMockBuilder(QuoteRepository::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->cacheMock = $this->getMockForAbstractClass(CacheInterface::class);
+        $this->messageMock = $this->getMockForAbstractClass(MessageInterface::class);
+
+        $this->cartRepository = (new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this))->getObject(
+            CartRepository::class,
+            [
+                'quoteRepository' => $this->quoteRepositoryMock,
+                'cache' => $this->cacheMock,
+            ]
         );
-
-        $this->quoteRepositoryMock = $this->getMock(
-            'Magento\SampleServiceContractReplacement\Model\QuoteRepository',
-            ['get', 'getList'],
-            [],
-            '',
-            false
-        );
-
-        $this->cacheMock = $this->getMock('Magento\Framework\App\CacheInterface', [], [], '', false);
-        $this->messageMock = $this->getMock('Magento\GiftMessage\Api\Data\MessageInterface', [], [], '', false);
-
-        $this->cartRepository = new CartRepository($this->quoteRepositoryMock, $this->cacheMock);
     }
 
     /**
@@ -81,6 +71,7 @@ class CartRepositoryTest extends \PHPUnit_Framework_TestCase
         $this->quoteRepositoryMock->expects($this->any())
             ->method('get')
             ->willThrowException(new NoSuchEntityException(__('No such entity with cartId = 0')));
+
         $this->cartRepository->get(0);
     }
 
@@ -91,9 +82,10 @@ class CartRepositoryTest extends \PHPUnit_Framework_TestCase
             ->method('load')
             ->willReturn(serialize($this->messageMock));
 
-        $giftMsg = $this->cartRepository->get($this->cartId);
+        $giftMsg = $this->cartRepository->get(1);
+
         $this->assertEquals($this->messageMock, $giftMsg);
-        $this->assertInstanceOf('Magento\GiftMessage\Api\Data\MessageInterface', $giftMsg);
+        $this->assertInstanceOf(MessageInterface::class, $giftMsg);
     }
 
     /**
@@ -105,7 +97,8 @@ class CartRepositoryTest extends \PHPUnit_Framework_TestCase
         $this->quoteRepositoryMock->expects($this->any())
             ->method('get')
             ->willThrowException(new NoSuchEntityException(__('No such entity with cartId = 1')));
-        $this->cartRepository->save($this->cartId, $this->messageMock);
+
+        $this->cartRepository->save(1, $this->messageMock);
     }
 
     /**
@@ -118,7 +111,8 @@ class CartRepositoryTest extends \PHPUnit_Framework_TestCase
             ->method('get')
             ->willReturn($this->quoteMock);
         $this->quoteMock->expects($this->once())->method('getItemsCount')->willReturn(0);
-        $this->cartRepository->save($this->cartId, $this->messageMock);
+
+        $this->cartRepository->save(1, $this->messageMock);
     }
 
     /**
@@ -133,7 +127,7 @@ class CartRepositoryTest extends \PHPUnit_Framework_TestCase
         $this->quoteMock->expects($this->once())->method('getItemsCount')->willReturn(1);
         $this->quoteMock->expects($this->once())->method('getIsVirtual')->willReturn(true);
 
-        $this->cartRepository->save($this->cartId, $this->messageMock);
+        $this->cartRepository->save(1, $this->messageMock);
     }
 
     public function testSave()
@@ -144,7 +138,7 @@ class CartRepositoryTest extends \PHPUnit_Framework_TestCase
         $this->quoteMock->expects($this->once())->method('getItemsCount')->willReturn(1);
         $this->quoteMock->expects($this->once())->method('getIsVirtual')->willReturn(false);
 
-        $customerMock = $this->getMock('Magento\Customer\Api\Data\CustomerInterface', [], [], '', false);
+        $customerMock = $this->getMockForAbstractClass(CustomerInterface::class);
         $this->quoteMock->expects($this->once())->method('getCustomer')->willReturn($customerMock);
 
         $this->messageMock->expects($this->any())->method('setCustomerId');
@@ -154,7 +148,7 @@ class CartRepositoryTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('save');
 
-        $this->assertTrue($this->cartRepository->save($this->cartId, $this->messageMock));
+        $this->assertTrue($this->cartRepository->save(1, $this->messageMock));
     }
 }
 
