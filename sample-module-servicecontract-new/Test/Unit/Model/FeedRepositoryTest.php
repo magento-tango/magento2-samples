@@ -23,10 +23,12 @@ class FeedRepositoryTest extends \PHPUnit_Framework_TestCase
      * @var  FeedManager|\PHPUnit_Framework_MockObject_MockObject
      */
     private $feedManager;
+
     /**
      * @var FeedSearchResultInterfaceFactory|\PHPUnit_Framework_MockObject_MockObject
      */
     private $searchResultFactory;
+
     /**
      * @var FeedRepository
      */
@@ -52,6 +54,9 @@ class FeedRepositoryTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @param array $feeds
+     * @param array $filterGroups
+     * @param array $expectedFilteredFeeds
      * @dataProvider getListDataProvider
      */
     public function testGetList(array $feeds, array $filterGroups, array $expectedFilteredFeeds)
@@ -69,6 +74,7 @@ class FeedRepositoryTest extends \PHPUnit_Framework_TestCase
         $this->searchResultFactory->expects($this->once())
             ->method('create')
             ->willReturn($searchResult);
+
         /** @var SearchCriteria $searchCriteria */
         $searchCriteria = $this->getMockBuilder(SearchCriteria::class)
             ->disableOriginalConstructor()
@@ -92,7 +98,6 @@ class FeedRepositoryTest extends \PHPUnit_Framework_TestCase
             'test3' => $this->createFeed('quis', 'Nam volutpat tincidunt leo quis', 'Lorem ipsum dolor sit amet'),
             'test4' => $this->createFeed('quis', 'Nam volutpat tincidunt leo quis', 'Nam volutpat tincidunt leo quis'),
         ];
-
 
         return [
             'noFilters' => [
